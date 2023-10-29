@@ -78,6 +78,19 @@ thm <- thm %>%
   group_by(coicop) %>% 
   mutate(Inflacja = ((average - lag(average)) / lag(average)) * 100)
 thm <- na.omit(thm)
+dict_f <- data.frame(
+  Skr = c("CP011",  "CP0111",  "CP01113" ,"CP0112"  ,"CP01121" ,"CP01122", "CP01123",
+          "CP01124", "CP0113",  "CP0114",  "CP01141", "CP01144", "CP01145", "CP01147",
+          "CP0115",  "CP01151", "CP01153", "CP01154", "CP0116",  "CP0117",  "CP01174",
+          "CP01181", "CP0121",  "CP01223", "CP02121", "CP0213" ),
+  Full_f = c("Food", "Bread, cereals", "Bread", "Meet", "Beef, veal", "Pork", "Lamb, goat",
+             "Poultry", "Fish, seafood", "Milk, cheese, eggs", "Fresh whole milk", "Yoghurt", "Cheese, Curd", "Eggs",
+             "Oils, fats", "Butter", "Olive Oil", "Other edible oils", "Fruit", "Vegetables", "Potatoes", 
+             "Sugar", "Coffee, tea, cocoa", "Fruit and vegetables juices", "Wine from grapes", "Bear")
+)
+thm <- thm %>% 
+  left_join(dict_f, by = c("coicop" = "Skr")) %>% 
+  select(-coicop)
 #--------------------------------------------------------------------
  map1 <- data %>%
   mutate(Year = year(as.Date(paste0(TIME_PERIOD, "-01")))) %>% 
@@ -122,18 +135,19 @@ merged_map <- merged_map %>%
 
 
 # Plots:
+#--------------------------------------------------------------------
 ggplot(POLGEREU, aes(x = period, y = Inflacja, color = country,group = country)) +
   geom_line() +
   geom_point() + 
   labs(title = "Inflation by every half a year", x = "Time", y = "% of inflation") +
   scale_color_manual(values = c("EU" = "blue", "DE" = "black", "PL" = "red"))
-
-ggplot(thm, aes(x = Year, y = coicop, fill = Inflacja)) +
+#--------------------------------------------------------------------
+ggplot(thm, aes(x = Year, y = Full_f, fill = Inflacja)) +
   geom_tile()+
   labs(x = "Year", y = "Group of Products", fill = "Inflation", title = "inflation over the years for various product groups")+
   scale_fill_gradient(low = "white", high = "blue4") + 
   theme_minimal() 
-  
+#-------------------------------------------------------------------- 
 map_data_europe <- map_data("world")
 dane_mapa <- map_data_europe %>%
   left_join(merged_map, by = c("region" = "Full"))
